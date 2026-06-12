@@ -59,6 +59,13 @@ describe("dueLabel", () => {
     expect(dueLabel({ vague: true, due: null }, NOW)).toBe("SOMEDAY");
     expect(dueLabel({ due: null, vague: false }, NOW)).toBeNull();
   });
+  it("formats an overdue date as its absolute day", () => {
+    expect(dueLabel({ due: at(2026, 5, 9, 23, 59), hasTime: false }, NOW)).toBe("JUN 9");
+  });
+  it("converts 12am and 12pm correctly", () => {
+    expect(dueLabel({ due: at(2026, 5, 11, 0, 0), hasTime: true }, NOW)).toBe("TODAY 12AM");
+    expect(dueLabel({ due: at(2026, 5, 11, 12, 0), hasTime: true }, NOW)).toBe("TODAY 12PM");
+  });
 });
 
 describe("nextOccurrence", () => {
@@ -88,5 +95,6 @@ describe("repeatLabel", () => {
     expect(repeatLabel({ every: 1, unit: "day" })).toBe("↻1D");
     expect(repeatLabel({ every: 2, unit: "week" })).toBe("↻2W");
     expect(repeatLabel(null)).toBeNull();
+    expect(repeatLabel({ every: 1, unit: "fortnight" })).toBeNull();
   });
 });

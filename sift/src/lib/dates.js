@@ -111,5 +111,6 @@ export function nextOccurrence(due, repeat, now = Date.now()) {
 export function repeatLabel(repeat) {
   if (!repeat) return null;
   const u = { day: "D", week: "W", month: "M", year: "Y" }[repeat.unit];
+  if (!u) return null; // unknown unit (e.g. corrupt import) — no glyph
   return `↻${repeat.every}${u}`;
 }
