@@ -1,3 +1,5 @@
+import { dueLabel } from "../lib/dates.js";
+
 // deterministic tiny tilt per item, like cards dropped into a tray
 function tilt(id) {
   let h = 0;
@@ -6,6 +8,8 @@ function tilt(id) {
 }
 
 export default function ItemCard({ item, categories, onToggleDone, onRefile, onRemove }) {
+  const label = dueLabel(item);
+  const overdue = !item.done && item.due != null && item.due < Date.now();
   return (
     <article className={"card" + (item.done ? " done" : "")} style={{ "--tilt": tilt(item.id) }}>
       <div className="card-row">
@@ -13,6 +17,7 @@ export default function ItemCard({ item, categories, onToggleDone, onRefile, onR
           {item.done ? "■" : "□"}
         </button>
         <p>{item.text}</p>
+        {label && <span className={"duechip" + (overdue ? " over" : "") + (item.vague ? " vague" : "")}>{label}</span>}
       </div>
       <footer>
         <span className="meta">

@@ -402,3 +402,23 @@ body::before {
   .board { grid-template-columns: 1fr; }
   .tag { display: none; }
 }
+
+/* ---- due-date chips ---- */
+
+.duechip {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 1px 6px;
+  white-space: nowrap;
+  align-self: flex-start;
+  flex: none;
+}
+
+.duechip.over { border-color: var(--red); color: var(--red); }
+.duechip.vague { border-style: dashed; border-color: var(--muted); color: var(--muted); }
+
+.card-row { align-items: flex-start; }
+.card-row p { flex: 1; }

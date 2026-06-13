@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { classify, suggestName, POLICY } from "./lib/classifier.js";
+import { parseDue } from "./lib/dates.js";
 import { load, save, freshSeeds, normalize, TRAY_COLORS } from "./lib/store.js";
 import Capture from "./components/Capture.jsx";
 import Trace from "./components/Trace.jsx";
@@ -19,15 +20,24 @@ const RegMark = () => (
   </svg>
 );
 
-const newItem = (text, catId, conf) => ({
-  id: uid(), catId, text, conf, ts: stamp(), done: false, created: Date.now(),
-  due: null, hasTime: false, vague: false, repeat: null, remind: false, doneAt: null, notifiedAt: null,
-});
+const newItem = (text, catId, conf) => {
+  const parsed = parseDue(text);
+  return {
+    id: uid(), catId, text, conf, ts: stamp(), done: false, created: Date.now(),
+    due: parsed?.due ?? null,
+    hasTime: parsed?.hasTime ?? false,
+    vague: parsed?.vague ?? false,
+    repeat: null,
+    remind: !!(parsed && parsed.due != null), // concrete date -> reminder armed by default
+    doneAt: null, notifiedAt: null,
+  };
+};
 
 export default function App() {
   const [data, setData] = useState(load);
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState("new"); // "new" | "due"
   const [trace, setTrace] = useState(null);     // { text, res }
   const [pending, setPending] = useState(null); // { text, name }
   const [toast, setToast] = useState(null);     // { text, undoId? }
@@ -199,12 +209,14 @@ export default function App() {
       <Toolbar
         query={query} setQuery={setQuery}
         onAddTray={addTray} onExport={exportJSON} onImport={importJSON} onReset={resetAll}
+        sort={sort} setSort={setSort}
       />
 
       <Board
         categories={data.categories} items={visibleItems} canDelete={data.categories.length > 1}
         onRenameTray={renameTray} onDeleteTray={deleteTray}
         onToggleDone={toggleDone} onRefile={refile} onRemove={removeItem}
+        sort={sort}
       />
 
       {toast && <Toast toast={toast} onUndo={undo} />}

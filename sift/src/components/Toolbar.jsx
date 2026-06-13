@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport, onReset }) {
+export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport, onReset, sort, setSort }) {
   const [newTray, setNewTray] = useState(null);
   const fileRef = useRef(null);
 
@@ -20,6 +20,13 @@ export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport
         aria-label="Filter items"
       />
       <span className="spacer" />
+      <button
+        className="ghost"
+        onClick={() => setSort(sort === "new" ? "due" : "new")}
+        aria-label="Toggle sort order"
+      >
+        sort: {sort === "new" ? "newest" : "due"}
+      </button>
       {newTray === null ? (
         <button className="ghost" onClick={() => setNewTray("")}>+ tray</button>
       ) : (
