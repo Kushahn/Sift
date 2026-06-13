@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { classify, suggestName, POLICY } from "./lib/classifier.js";
 import { parseDue, nextOccurrence, dueLabel } from "./lib/dates.js";
+import { ensurePermission, syncReminders, reminderTime, isNative } from "./lib/notify.js";
 import { load, save, freshSeeds, normalize, TRAY_COLORS } from "./lib/store.js";
 import Capture from "./components/Capture.jsx";
 import Trace from "./components/Trace.jsx";
@@ -34,6 +35,8 @@ const newItem = (text, catId, conf) => {
   };
 };
 
+const parseDueArmed = (text) => { const p = parseDue(text); return !!(p && p.due != null); };
+
 export default function App() {
   const [data, setData] = useState(load);
   const [input, setInput] = useState("");
@@ -47,6 +50,34 @@ export default function App() {
   const toastTimer = useRef(null);
 
   useEffect(() => save(data), [data]);
+
+  // keep native scheduled notifications in sync with items
+  useEffect(() => { syncReminders(data.items); }, [data.items]);
+
+  // web fallback: check every minute while the app is open
+  const itemsRef = useRef(data.items);
+  useEffect(() => { itemsRef.current = data.items; }, [data.items]);
+  useEffect(() => {
+    if (isNative || !("Notification" in window)) return;
+    const tick = () => {
+      if (Notification.permission !== "granted") return;
+      const now = Date.now();
+      const fire = itemsRef.current.filter((it) => {
+        const t = reminderTime(it);
+        return t != null && t <= now && !it.notifiedAt;
+      });
+      if (!fire.length) return;
+      fire.forEach((it) => new Notification("Sift", { body: it.text, tag: it.id }));
+      setData((d) => ({
+        ...d,
+        items: d.items.map((it) => (fire.some((f) => f.id === it.id) ? { ...it, notifiedAt: now } : it)),
+      }));
+    };
+    tick();
+    const t = setInterval(tick, 60_000);
+    return () => clearInterval(t);
+  }, []);
+
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   const visibleItems = useMemo(() => {
@@ -77,6 +108,7 @@ export default function App() {
     } else {
       setPending({ text, name: suggestName(text) });
     }
+    if (parseDueArmed(text)) ensurePermission();
     setInput("");
     inputRef.current?.focus();
   }
@@ -162,6 +194,7 @@ export default function App() {
 
   function saveEdit(id, patch) {
     patchItem(id, (it) => ({ ...it, ...patch }));
+    if (patch.remind && patch.due != null) ensurePermission();
     setEditing(null);
   }
 
