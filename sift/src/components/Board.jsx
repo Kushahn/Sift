@@ -1,4 +1,10 @@
+import { useState } from "react";
+import {
+  DndContext, DragOverlay, PointerSensor, TouchSensor,
+  useSensor, useSensors, pointerWithin,
+} from "@dnd-kit/core";
 import Tray from "./Tray.jsx";
+import ItemCard from "./ItemCard.jsx";
 
 function sortItems(list, sort) {
   if (sort !== "due") return list; // capture order is already newest-first
@@ -10,24 +16,58 @@ function sortItems(list, sort) {
   });
 }
 
-export default function Board({ categories, items, canDelete, onRenameTray, onDeleteTray, onToggleDone, onRefile, onRemove, sort, onEdit }) {
+export default function Board({ categories, items, sort, canDelete, onRenameTray, onDeleteTray, onToggleDone, onRefile, onRemove, onEdit }) {
+  const [dragId, setDragId] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+  );
+
+  function handleDragEnd(e) {
+    setDragId(null);
+    const overId = e.over?.id;
+    if (!overId) return;
+    const catId = String(overId).split(":")[1];
+    const item = items.find((it) => it.id === e.active.id);
+    if (catId && item && item.catId !== catId) onRefile(item.id, catId);
+  }
+
+  const dragItem = dragId ? items.find((it) => it.id === dragId) : null;
+
   return (
-    <div className="board">
-      {categories.map((c) => (
-        <Tray
-          key={c.id}
-          cat={c}
-          items={sortItems(items.filter((it) => it.catId === c.id), sort)}
-          categories={categories}
-          canDelete={canDelete}
-          onRename={onRenameTray}
-          onDelete={onDeleteTray}
-          onToggleDone={onToggleDone}
-          onRefile={onRefile}
-          onRemove={onRemove}
-          onEdit={onEdit}
-        />
-      ))}
-    </div>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={pointerWithin}
+      onDragStart={(e) => setDragId(e.active.id)}
+      onDragCancel={() => setDragId(null)}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="board">
+        {categories.map((c) => (
+          <Tray
+            key={c.id}
+            cat={c}
+            items={sortItems(items.filter((it) => it.catId === c.id), sort)}
+            categories={categories}
+            canDelete={canDelete}
+            onRename={onRenameTray}
+            onDelete={onDeleteTray}
+            onToggleDone={onToggleDone}
+            onRefile={onRefile}
+            onRemove={onRemove}
+            onEdit={onEdit}
+          />
+        ))}
+      </div>
+      <DragOverlay>
+        {dragItem && (
+          <div className="dragproof">
+            <ItemCard item={dragItem} categories={categories}
+              onToggleDone={() => {}} onRefile={() => {}} onRemove={() => {}} onEdit={() => {}} />
+          </div>
+        )}
+      </DragOverlay>
+    </DndContext>
   );
 }

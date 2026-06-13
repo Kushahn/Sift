@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import ItemCard from "./ItemCard.jsx";
 
 export default function Tray({ cat, items, categories, canDelete, onRename, onDelete, onToggleDone, onRefile, onRemove, onEdit }) {
+  const { isOver, setNodeRef } = useDroppable({ id: "tray:" + cat.id });
   const [editName, setEditName] = useState(null);
 
   function commitRename() {
@@ -11,7 +13,7 @@ export default function Tray({ cat, items, categories, canDelete, onRename, onDe
   }
 
   return (
-    <section className="tray" style={{ "--c": cat.color }}>
+    <section ref={setNodeRef} className={"tray" + (isOver ? " over" : "")} style={{ "--c": cat.color }}>
       <header className="tray-head">
         <span className="drum" aria-hidden="true" />
         {editName !== null ? (

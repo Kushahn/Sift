@@ -524,3 +524,17 @@ body::before {
   from { transform: translateY(40px); opacity: 0.4; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+/* ---- drag and drop ---- */
+
+.card { touch-action: manipulation; }
+.card.dragging { opacity: 0.35; }
+
+.dragproof .card {
+  box-shadow: 7px 7px 0 var(--shadow);
+  transform: rotate(-1.2deg);
+  animation: none;
+  cursor: grabbing;
+}
+
+.tray.over { outline: 2.5px solid var(--c); outline-offset: 2px; }

@@ -1,3 +1,4 @@
+import { useDraggable } from "@dnd-kit/core";
 import { dueLabel, repeatLabel } from "../lib/dates.js";
 
 // deterministic tiny tilt per item, like cards dropped into a tray
@@ -8,10 +9,17 @@ function tilt(id) {
 }
 
 export default function ItemCard({ item, categories, onToggleDone, onRefile, onRemove, onEdit }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   const label = dueLabel(item);
   const overdue = !item.done && item.due != null && item.due < Date.now();
   return (
-    <article className={"card" + (item.done ? " done" : "")} style={{ "--tilt": tilt(item.id) }}>
+    <article
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={"card" + (item.done ? " done" : "") + (isDragging ? " dragging" : "")}
+      style={{ "--tilt": tilt(item.id) }}
+    >
       <div className="card-row">
         <button className="check" onClick={() => onToggleDone(item.id)} aria-label={item.done ? "Mark not done" : "Mark done"}>
           {item.done ? "■" : "□"}
