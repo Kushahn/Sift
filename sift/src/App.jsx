@@ -242,7 +242,7 @@ export default function App() {
 
       {toast && <Toast toast={toast} onUndo={undo} />}
 
-      {editing && (
+      {editing && data.items.some((it) => it.id === editing) && (
         <EditSheet
           item={data.items.find((it) => it.id === editing)}
           categories={data.categories}
