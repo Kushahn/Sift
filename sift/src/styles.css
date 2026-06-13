@@ -70,27 +70,6 @@ body::before {
 
 .tag { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
 
-.seg {
-  display: flex;
-  border: 1.5px solid var(--ink);
-  background: var(--card);
-  box-shadow: 3px 3px 0 var(--shadow);
-}
-
-.segbtn {
-  font-family: var(--mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  padding: 9px 16px;
-  cursor: pointer;
-}
-
-.segbtn.on { background: var(--ink); color: var(--card); }
-
 /* ---- capture ---- */
 
 .capture { display: flex; gap: 10px; }
