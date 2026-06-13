@@ -10,7 +10,7 @@ function sortItems(list, sort) {
   });
 }
 
-export default function Board({ categories, items, canDelete, onRenameTray, onDeleteTray, onToggleDone, onRefile, onRemove, sort }) {
+export default function Board({ categories, items, canDelete, onRenameTray, onDeleteTray, onToggleDone, onRefile, onRemove, sort, onEdit }) {
   return (
     <div className="board">
       {categories.map((c) => (
@@ -25,6 +25,7 @@ export default function Board({ categories, items, canDelete, onRenameTray, onDe
           onToggleDone={onToggleDone}
           onRefile={onRefile}
           onRemove={onRemove}
+          onEdit={onEdit}
         />
       ))}
     </div>

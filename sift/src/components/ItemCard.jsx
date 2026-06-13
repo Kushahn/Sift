@@ -1,4 +1,4 @@
-import { dueLabel } from "../lib/dates.js";
+import { dueLabel, repeatLabel } from "../lib/dates.js";
 
 // deterministic tiny tilt per item, like cards dropped into a tray
 function tilt(id) {
@@ -7,7 +7,7 @@ function tilt(id) {
   return ((h % 5) - 2) * 0.35 + "deg";
 }
 
-export default function ItemCard({ item, categories, onToggleDone, onRefile, onRemove }) {
+export default function ItemCard({ item, categories, onToggleDone, onRefile, onRemove, onEdit }) {
   const label = dueLabel(item);
   const overdue = !item.done && item.due != null && item.due < Date.now();
   return (
@@ -16,8 +16,9 @@ export default function ItemCard({ item, categories, onToggleDone, onRefile, onR
         <button className="check" onClick={() => onToggleDone(item.id)} aria-label={item.done ? "Mark not done" : "Mark done"}>
           {item.done ? "■" : "□"}
         </button>
-        <p>{item.text}</p>
+        <button className="cardtext" onClick={() => onEdit(item.id)} title="Edit">{item.text}</button>
         {label && <span className={"duechip" + (overdue ? " over" : "") + (item.vague ? " vague" : "")}>{label}</span>}
+        {item.repeat && <span className="repglyph">{repeatLabel(item.repeat)}</span>}
       </div>
       <footer>
         <span className="meta">

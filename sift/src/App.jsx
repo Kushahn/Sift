@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { classify, suggestName, POLICY } from "./lib/classifier.js";
-import { parseDue } from "./lib/dates.js";
+import { parseDue, nextOccurrence, dueLabel } from "./lib/dates.js";
 import { load, save, freshSeeds, normalize, TRAY_COLORS } from "./lib/store.js";
 import Capture from "./components/Capture.jsx";
 import Trace from "./components/Trace.jsx";
@@ -8,6 +8,7 @@ import PendingSlip from "./components/PendingSlip.jsx";
 import Toolbar from "./components/Toolbar.jsx";
 import Board from "./components/Board.jsx";
 import Toast from "./components/Toast.jsx";
+import EditSheet from "./components/EditSheet.jsx";
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const stamp = () =>
@@ -41,6 +42,7 @@ export default function App() {
   const [trace, setTrace] = useState(null);     // { text, res }
   const [pending, setPending] = useState(null); // { text, name }
   const [toast, setToast] = useState(null);     // { text, undoId? }
+  const [editing, setEditing] = useState(null); // item id or null
   const inputRef = useRef(null);
   const toastTimer = useRef(null);
 
@@ -144,10 +146,29 @@ export default function App() {
 
   const refile = (id, catId) => patchItem(id, (it) => ({ ...it, catId, refiled: true }));
 
-  const toggleDone = (id) =>
-    patchItem(id, (it) => ({ ...it, done: !it.done, doneAt: !it.done ? Date.now() : null }));
+  function toggleDone(id) {
+    const it = data.items.find((x) => x.id === id);
+    if (!it) return;
+    if (!it.done && it.repeat) {
+      const due = nextOccurrence(it.due, it.repeat);
+      patchItem(id, (x) => ({ ...x, done: false, doneAt: Date.now(), due, notifiedAt: null }));
+      pushToast({ text: `done — next: ${dueLabel({ due, hasTime: it.hasTime })}` });
+      return;
+    }
+    patchItem(id, (x) => ({ ...x, done: !x.done, doneAt: !x.done ? Date.now() : null }));
+  }
 
   const removeItem = (id) => setData((d) => ({ ...d, items: d.items.filter((it) => it.id !== id) }));
+
+  function saveEdit(id, patch) {
+    patchItem(id, (it) => ({ ...it, ...patch }));
+    setEditing(null);
+  }
+
+  function deleteFromSheet(id) {
+    removeItem(id);
+    setEditing(null);
+  }
 
   // ---- data -----------------------------------------------------------------
 
@@ -216,10 +237,20 @@ export default function App() {
         categories={data.categories} items={visibleItems} canDelete={data.categories.length > 1}
         onRenameTray={renameTray} onDeleteTray={deleteTray}
         onToggleDone={toggleDone} onRefile={refile} onRemove={removeItem}
-        sort={sort}
+        sort={sort} onEdit={setEditing}
       />
 
       {toast && <Toast toast={toast} onUndo={undo} />}
+
+      {editing && (
+        <EditSheet
+          item={data.items.find((it) => it.id === editing)}
+          categories={data.categories}
+          onSave={saveEdit}
+          onDelete={deleteFromSheet}
+          onClose={() => setEditing(null)}
+        />
+      )}
 
       <footer className="foot">
         rule-based router v1 · swap in src/lib/classifier.js · data lives on this device · refiles become training signals

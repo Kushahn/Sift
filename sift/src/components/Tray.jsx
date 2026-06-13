@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ItemCard from "./ItemCard.jsx";
 
-export default function Tray({ cat, items, categories, canDelete, onRename, onDelete, onToggleDone, onRefile, onRemove }) {
+export default function Tray({ cat, items, categories, canDelete, onRename, onDelete, onToggleDone, onRefile, onRemove, onEdit }) {
   const [editName, setEditName] = useState(null);
 
   function commitRename() {
@@ -42,7 +42,7 @@ export default function Tray({ cat, items, categories, canDelete, onRename, onDe
 
       {items.map((it) => (
         <ItemCard key={it.id} item={it} categories={categories}
-          onToggleDone={onToggleDone} onRefile={onRefile} onRemove={onRemove} />
+          onToggleDone={onToggleDone} onRefile={onRefile} onRemove={onRemove} onEdit={onEdit} />
       ))}
     </section>
   );
