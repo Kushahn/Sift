@@ -399,7 +399,6 @@ body::before {
   .capture input { font-size: 16px; box-shadow: none; }
   .btn.go { padding: 0 14px; }
   .toast { bottom: calc(86px + env(safe-area-inset-bottom)); left: 18px; }
-  .board { grid-template-columns: 1fr; }
   .tag { display: none; }
 }
 
@@ -554,3 +553,57 @@ body::before {
 :root[data-theme="dark"] body::before { opacity: 0.4; }
 
 .themebtn { white-space: nowrap; }
+
+/* ---- mobile swipe pager ---- */
+
+.traytabs { display: none; }
+
+@media (max-width: 640px) {
+  .traytabs {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 0;
+    background: var(--paper);
+    scrollbar-width: none;
+  }
+  .traytabs::-webkit-scrollbar { display: none; }
+
+  .traytab {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1.5px solid var(--ink);
+    background: var(--card);
+    color: var(--ink);
+    padding: 7px 11px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .traytab.on { background: var(--ink); color: var(--card); }
+  .traytab.over { outline: 2.5px solid var(--c); outline-offset: 2px; }
+  .traytab .drum { width: 9px; height: 9px; }
+  .tabcount { opacity: 0.65; }
+
+  .board {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    scrollbar-width: none;
+  }
+  .board::-webkit-scrollbar { display: none; }
+
+  .traywrap {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    min-width: 0;
+  }
+}
