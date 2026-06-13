@@ -46,6 +46,7 @@ export default function App() {
   const [pending, setPending] = useState(null); // { text, name }
   const [toast, setToast] = useState(null);     // { text, undoId? }
   const [editing, setEditing] = useState(null); // item id or null
+  const [sysDark, setSysDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
   const inputRef = useRef(null);
   const toastTimer = useRef(null);
 
@@ -77,6 +78,23 @@ export default function App() {
     const t = setInterval(tick, 60_000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const fn = (e) => setSysDark(e.matches);
+    mq.addEventListener("change", fn);
+    return () => mq.removeEventListener("change", fn);
+  }, []);
+
+  const theme = data.theme === "auto" ? (sysDark ? "dark" : "light") : data.theme;
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#17171b" : "#141414");
+  }, [theme]);
+
+  const cycleTheme = () =>
+    setData((d) => ({ ...d, theme: d.theme === "auto" ? "light" : d.theme === "light" ? "dark" : "auto" }));
 
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
@@ -247,11 +265,14 @@ export default function App() {
           <RegMark />
           <span className="tag">type anything — it finds its place</span>
         </div>
+        <button className="ghost themebtn" onClick={cycleTheme} aria-label="Cycle theme">
+          {data.theme === "auto" ? "◐ auto" : data.theme === "light" ? "○ light" : "● dark"}
+        </button>
       </header>
 
       <Capture input={input} setInput={setInput} onRoute={route} inputRef={inputRef} />
 
-      {trace && <Trace trace={trace} asking={asking} onDismiss={() => setTrace(null)} />}
+      {trace && <Trace trace={trace} asking={asking} onDismiss={() => setTrace(null)} theme={theme} />}
 
       {pending && (
         <PendingSlip
@@ -270,7 +291,7 @@ export default function App() {
         categories={data.categories} items={visibleItems} canDelete={data.categories.length > 1}
         onRenameTray={renameTray} onDeleteTray={deleteTray}
         onToggleDone={toggleDone} onRefile={refile} onRemove={removeItem}
-        sort={sort} onEdit={setEditing}
+        sort={sort} onEdit={setEditing} theme={theme}
       />
 
       {toast && <Toast toast={toast} onUndo={undo} />}

@@ -538,3 +538,19 @@ body::before {
 }
 
 .tray.over { outline: 2.5px solid var(--c); outline-offset: 2px; }
+
+/* ---- night print shop ---- */
+
+:root[data-theme="dark"] {
+  --paper: #17171b;
+  --card: #212126;
+  --ink: #f0ede6;
+  --muted: #8e8a82;
+  --line: #3a3a40;
+  --red: #ff48b0;
+  --shadow: rgba(0, 0, 0, 0.9);
+}
+
+:root[data-theme="dark"] body::before { opacity: 0.4; }
+
+.themebtn { white-space: nowrap; }

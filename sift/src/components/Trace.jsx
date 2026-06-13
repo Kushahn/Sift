@@ -1,4 +1,6 @@
-export default function Trace({ trace, asking, onDismiss }) {
+import { inkFor } from "../lib/store.js";
+
+export default function Trace({ trace, asking, onDismiss, theme }) {
   const maxScore = Math.max(1, ...trace.res.rows.map((r) => r.score));
   return (
     <div className="trace" aria-live="polite">
@@ -10,7 +12,7 @@ export default function Trace({ trace, asking, onDismiss }) {
         <div className="tr-row" key={r.cat.id}>
           <span className="tr-name">{r.cat.name}</span>
           <span className="tr-bar">
-            <span style={{ width: (r.score / maxScore) * 100 + "%", background: r.cat.color }} />
+            <span style={{ width: (r.score / maxScore) * 100 + "%", background: inkFor(r.cat.color, theme) }} />
           </span>
           <span className="tr-score">{r.score.toFixed(1)}</span>
           <span className="tr-match">{r.matched.length ? r.matched.map((m) => `'${m}'`).join(" ") : "·"}</span>

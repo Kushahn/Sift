@@ -16,7 +16,7 @@ function sortItems(list, sort) {
   });
 }
 
-export default function Board({ categories, items, sort, canDelete, onRenameTray, onDeleteTray, onToggleDone, onRefile, onRemove, onEdit }) {
+export default function Board({ categories, items, sort, canDelete, onRenameTray, onDeleteTray, onToggleDone, onRefile, onRemove, onEdit, theme }) {
   const [dragId, setDragId] = useState(null);
 
   const sensors = useSensors(
@@ -57,6 +57,7 @@ export default function Board({ categories, items, sort, canDelete, onRenameTray
             onRefile={onRefile}
             onRemove={onRemove}
             onEdit={onEdit}
+            theme={theme}
           />
         ))}
       </div>

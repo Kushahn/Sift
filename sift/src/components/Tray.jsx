@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import ItemCard from "./ItemCard.jsx";
+import { inkFor } from "../lib/store.js";
 
-export default function Tray({ cat, items, categories, canDelete, onRename, onDelete, onToggleDone, onRefile, onRemove, onEdit }) {
+export default function Tray({ cat, items, categories, canDelete, onRename, onDelete, onToggleDone, onRefile, onRemove, onEdit, theme }) {
   const { isOver, setNodeRef } = useDroppable({ id: "tray:" + cat.id });
   const [editName, setEditName] = useState(null);
 
@@ -13,7 +14,7 @@ export default function Tray({ cat, items, categories, canDelete, onRename, onDe
   }
 
   return (
-    <section ref={setNodeRef} className={"tray" + (isOver ? " over" : "")} style={{ "--c": cat.color }}>
+    <section ref={setNodeRef} className={"tray" + (isOver ? " over" : "")} style={{ "--c": inkFor(cat.color, theme) }}>
       <header className="tray-head">
         <span className="drum" aria-hidden="true" />
         {editName !== null ? (
