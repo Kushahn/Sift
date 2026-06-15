@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { classify, suggestName, POLICY } from "./lib/classifier.js";
+import { classify, suggestName, learn, POLICY } from "./lib/classifier.js";
 import { parseDue, nextOccurrence, dueLabel } from "./lib/dates.js";
 import { ensurePermission, syncReminders, reminderTime, isNative } from "./lib/notify.js";
 import { load, save, freshSeeds, normalize, TRAY_COLORS } from "./lib/store.js";
@@ -194,7 +194,19 @@ export default function App() {
   const patchItem = (id, fn) =>
     setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? fn(it) : it)) }));
 
-  const refile = (id, catId) => patchItem(id, (it) => ({ ...it, catId, refiled: true }));
+  // A deliberate correction: move the item AND teach the target tray its words,
+  // so similar future captures route there. (deleteTray's forced moves stay dumb.)
+  function refile(id, catId) {
+    setData((d) => {
+      const it = d.items.find((x) => x.id === id);
+      if (!it || it.catId === catId) return d;
+      return {
+        ...d,
+        categories: d.categories.map((c) => (c.id === catId ? learn(c, it.text) : c)),
+        items: d.items.map((x) => (x.id === id ? { ...x, catId, refiled: true } : x)),
+      };
+    });
+  }
 
   function toggleDone(id) {
     const it = data.items.find((x) => x.id === id);

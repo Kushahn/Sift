@@ -91,7 +91,7 @@
     { "id": "refile-learns", "category": "functional",
       "description": "Refiling teaches the router — a corrected item's salient words shift future routing toward the chosen tray (write to per-tray words[], never the shared seed lexicons)",
       "steps": ["Refile/correct an item into tray X", "Capture new text similar to it", "Verify it now routes to X", "Reload", "Verify the learning persisted"],
-      "passes": false },
+      "passes": true },
     { "id": "lib-unit-suite", "category": "unit",
       "description": "classifier/dates/store unit suites pass",
       "steps": ["cd sift && npm test", "Verify classifier.test, dates.test, store.test all green"],
