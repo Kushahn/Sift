@@ -317,18 +317,18 @@ body::before {
 /* ---- item cards ---- */
 
 .card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   border: 1px solid var(--line);
   background: var(--card);
-  padding: 9px 11px;
-  margin-bottom: 9px;
-  transform: rotate(var(--tilt));
-  animation: drop 0.25s ease;
+  padding: 8px 11px;
+  margin-bottom: 8px;
+  animation: drop 0.2s ease;
+  touch-action: manipulation;
 }
 
 .card.done { opacity: 0.55; }
-.card.done p { text-decoration: line-through; }
-
-.card-row { display: flex; gap: 9px; align-items: flex-start; }
 
 .check {
   border: 0;
@@ -341,13 +341,18 @@ body::before {
   flex: none;
 }
 
-.card p { margin: 0 0 8px; font-size: 14.5px; line-height: 1.45; }
-
-.card footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-
-.meta { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
-
-.acts { display: flex; gap: 6px; align-items: center; }
+.acts {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.card:hover .acts,
+.card:focus-within .acts { opacity: 1; }
+@media (hover: none) { .acts { display: none; } }
 
 .acts select { font-size: 11px; padding: 2px 5px; border-color: var(--line); color: var(--muted); max-width: 110px; }
 
@@ -383,8 +388,8 @@ body::before {
 /* ---- motion & mobile ---- */
 
 @keyframes drop {
-  from { opacity: 0; transform: translateY(-6px) rotate(var(--tilt)); }
-  to { opacity: 1; transform: rotate(var(--tilt)); }
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -424,31 +429,29 @@ body::before {
   color: var(--ink);
   padding: 1px 6px;
   white-space: nowrap;
-  align-self: flex-start;
   flex: none;
 }
 
 .duechip.over { border-color: var(--red); color: var(--red); }
 .duechip.vague { border-style: dashed; border-color: var(--muted); color: var(--muted); }
 
-.card-row { align-items: flex-start; }
-.card-row p { flex: 1; }
-
 /* ---- edit sheet (correction slip) ---- */
 
 .cardtext {
   font-family: var(--sans);
   font-size: 14.5px;
-  line-height: 1.45;
+  line-height: 1.4;
   background: none;
   border: 0;
   padding: 0;
-  margin: 0 0 8px;
+  margin: 0;
   color: var(--ink);
   text-align: left;
-  cursor: pointer;
+  cursor: grab;
   flex: 1;
+  min-width: 0;
 }
+.cardtext:active { cursor: grabbing; }
 
 .card.done .cardtext { text-decoration: line-through; }
 
@@ -538,7 +541,6 @@ body::before {
 
 /* ---- drag and drop ---- */
 
-.card { touch-action: manipulation; }
 .card.dragging { opacity: 0.35; }
 
 .dragproof .card {
