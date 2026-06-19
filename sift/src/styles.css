@@ -38,7 +38,7 @@ body::before {
 .sift {
   position: relative;
   z-index: 1;
-  max-width: 1180px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 26px clamp(14px, 4vw, 44px) 110px;
 }
@@ -226,10 +226,9 @@ body::before {
 /* ---- board & trays ---- */
 
 .board {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 18px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .tray {
@@ -241,6 +240,19 @@ body::before {
 }
 
 .tray-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+
+.fold {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  flex: none;
+}
+.fold:hover { color: var(--ink); }
+.tray.collapsed .tray-head { margin-bottom: 0; }
 
 /* ink drum dot, slightly off-register like a riso double pass */
 .drum {
@@ -553,57 +565,3 @@ body::before {
 :root[data-theme="dark"] body::before { opacity: 0.4; }
 
 .themebtn { white-space: nowrap; }
-
-/* ---- mobile swipe pager ---- */
-
-.traytabs { display: none; }
-
-@media (max-width: 640px) {
-  .traytabs {
-    position: sticky;
-    top: 0;
-    z-index: 6;
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 8px 0;
-    background: var(--paper);
-    scrollbar-width: none;
-  }
-  .traytabs::-webkit-scrollbar { display: none; }
-
-  .traytab {
-    font-family: var(--mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    border: 1.5px solid var(--ink);
-    background: var(--card);
-    color: var(--ink);
-    padding: 7px 11px;
-    white-space: nowrap;
-    cursor: pointer;
-  }
-  .traytab.on { background: var(--ink); color: var(--card); }
-  .traytab.over { outline: 2.5px solid var(--c); outline-offset: 2px; }
-  .traytab .drum { width: 9px; height: 9px; }
-  .tabcount { opacity: 0.65; }
-
-  .board {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 12px;
-    scrollbar-width: none;
-  }
-  .board::-webkit-scrollbar { display: none; }
-
-  .traywrap {
-    flex: 0 0 100%;
-    scroll-snap-align: center;
-    min-width: 0;
-  }
-}

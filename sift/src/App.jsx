@@ -174,6 +174,9 @@ export default function App() {
   const renameTray = (id, name) =>
     setData((d) => ({ ...d, categories: d.categories.map((c) => (c.id === id ? { ...c, name } : c)) }));
 
+  const toggleCollapse = (id) =>
+    setData((d) => ({ ...d, categories: d.categories.map((c) => (c.id === id ? { ...c, collapsed: !c.collapsed } : c)) }));
+
   function deleteTray(id) {
     if (data.categories.length <= 1) return;
     const target = data.categories.find((c) => c.id === id);
@@ -301,7 +304,7 @@ export default function App() {
 
       <Board
         categories={data.categories} items={visibleItems} canDelete={data.categories.length > 1}
-        onRenameTray={renameTray} onDeleteTray={deleteTray}
+        onRenameTray={renameTray} onDeleteTray={deleteTray} onToggleCollapse={toggleCollapse}
         onToggleDone={toggleDone} onRefile={refile} onRemove={removeItem}
         sort={sort} onEdit={setEditing} theme={theme}
       />

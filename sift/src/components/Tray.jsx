@@ -3,9 +3,10 @@ import { useDroppable } from "@dnd-kit/core";
 import ItemCard from "./ItemCard.jsx";
 import { inkFor } from "../lib/store.js";
 
-export default function Tray({ cat, items, categories, canDelete, onRename, onDelete, onToggleDone, onRefile, onRemove, onEdit, theme }) {
+export default function Tray({ cat, items, categories, canDelete, onRename, onDelete, onToggleCollapse, onToggleDone, onRefile, onRemove, onEdit, theme }) {
   const { isOver, setNodeRef } = useDroppable({ id: "tray:" + cat.id });
   const [editName, setEditName] = useState(null);
+  const collapsed = !!cat.collapsed;
 
   function commitRename() {
     const name = (editName || "").trim();
@@ -14,8 +15,20 @@ export default function Tray({ cat, items, categories, canDelete, onRename, onDe
   }
 
   return (
-    <section ref={setNodeRef} className={"tray" + (isOver ? " over" : "")} style={{ "--c": inkFor(cat.color, theme) }}>
+    <section
+      ref={setNodeRef}
+      className={"tray" + (isOver ? " over" : "") + (collapsed ? " collapsed" : "")}
+      style={{ "--c": inkFor(cat.color, theme) }}
+    >
       <header className="tray-head">
+        <button
+          className="fold"
+          onClick={() => onToggleCollapse(cat.id)}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? `Expand ${cat.name}` : `Collapse ${cat.name}`}
+        >
+          {collapsed ? "▶" : "▼"}
+        </button>
         <span className="drum" aria-hidden="true" />
         {editName !== null ? (
           <input
@@ -41,12 +54,13 @@ export default function Tray({ cat, items, categories, canDelete, onRename, onDe
         )}
       </header>
 
-      {items.length === 0 && <div className="empty">empty — type above</div>}
+      {!collapsed && items.length === 0 && <div className="empty">empty — type above</div>}
 
-      {items.map((it) => (
-        <ItemCard key={it.id} item={it} categories={categories}
-          onToggleDone={onToggleDone} onRefile={onRefile} onRemove={onRemove} onEdit={onEdit} />
-      ))}
+      {!collapsed &&
+        items.map((it) => (
+          <ItemCard key={it.id} item={it} categories={categories}
+            onToggleDone={onToggleDone} onRefile={onRefile} onRemove={onRemove} onEdit={onEdit} />
+        ))}
     </section>
   );
 }
