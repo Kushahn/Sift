@@ -47,6 +47,13 @@ describe("normalize", () => {
   it("throws on garbage", () => {
     expect(() => normalize({ nope: true })).toThrow();
   });
+  it("defaults collapsed to false on categories", () => {
+    expect(normalize(freshSeeds()).categories[0].collapsed).toBe(false);
+  });
+  it("keeps an explicit collapsed flag", () => {
+    const src = { ...freshSeeds(), categories: freshSeeds().categories.map((c) => ({ ...c, collapsed: true })) };
+    expect(normalize(src).categories.every((c) => c.collapsed === true)).toBe(true);
+  });
 });
 
 describe("load", () => {

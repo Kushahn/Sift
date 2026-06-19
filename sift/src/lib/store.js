@@ -27,12 +27,14 @@ const ITEM_DEFAULTS = {
   repeat: null, remind: false, created: null, doneAt: null, notifiedAt: null,
 };
 
+const CAT_DEFAULTS = { collapsed: false };
+
 export function normalize(data) {
   if (!data) throw new Error("bad shape");
   const src = data.workspaces ? data.workspaces.personal : data;
   if (!src || !Array.isArray(src.categories) || !Array.isArray(src.items)) throw new Error("bad shape");
   return {
-    categories: src.categories,
+    categories: src.categories.map((c) => ({ ...CAT_DEFAULTS, ...c })),
     items: src.items.map((it) => ({ ...ITEM_DEFAULTS, ...it })),
     theme: data.theme === "light" || data.theme === "dark" ? data.theme : "auto",
   };
