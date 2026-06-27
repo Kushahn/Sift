@@ -67,10 +67,21 @@ const COMPILED = Object.fromEntries(
 );
 
 function lexFor(cat) {
-  if (cat.lexicon && COMPILED[cat.lexicon]) return COMPILED[cat.lexicon];
-  const words = (cat.words && cat.words.length ? cat.words : [cat.name.toLowerCase()])
-    .map((w) => ({ w, rx: wordRx(w) }));
-  return { words, patterns: [] };
+  const base = (cat.lexicon && COMPILED[cat.lexicon]) || null;
+  const words = [];
+  const seen = new Set();
+  const push = (entry) => {
+    const key = entry.w.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    words.push(entry);
+  };
+  if (base) base.words.forEach(push);
+  // per-tray learned words ride alongside the shared seed lexicon, never replace it;
+  // with neither lexicon nor words, fall back to the tray's own name.
+  const own = cat.words && cat.words.length ? cat.words : base ? [] : [cat.name.toLowerCase()];
+  own.forEach((w) => push({ w, rx: wordRx(w) }));
+  return { words, patterns: base ? base.patterns : [] };
 }
 
 export const POLICY = { auto: 75, ask: 35 }; // confidence thresholds, see PRD §5
@@ -112,12 +123,40 @@ const STOP = new Set([
   "over", "under", "every", "really", "very", "into", "your",
 ]);
 
+// Distinctive, lowercased tokens from free text: drops punctuation, short words,
+// stopwords, and duplicates. Shared by tray-naming and refile-learning.
+export function salientWords(text) {
+  const seen = new Set();
+  const out = [];
+  for (const w of text.toLowerCase().replace(/[^a-z0-9\s]/gi, "").split(/\s+/)) {
+    if (w.length <= 3 || STOP.has(w) || seen.has(w)) continue;
+    seen.add(w);
+    out.push(w);
+  }
+  return out;
+}
+
 export function suggestName(text) {
-  const words = text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/gi, "")
-    .split(/\s+/)
-    .filter((w) => w.length > 3 && !STOP.has(w));
-  const pick = words.sort((a, b) => b.length - a.length)[0] || "misc";
+  const pick = salientWords(text).sort((a, b) => b.length - a.length)[0] || "misc";
   return pick.charAt(0).toUpperCase() + pick.slice(1);
+}
+
+// How many words one correction may teach. Bounds vocab growth and keeps a single
+// refile from overpowering the seed lexicon — see refile-learns feature.
+const LEARN_PER_REFILE = 4;
+
+// Teach a tray from a corrected item's text: append the most distinctive new words
+// to the tray's own words[] (persisted, per-tray) — never the shared seed lexicon.
+// Returns a new category object; the input is left untouched.
+export function learn(cat, text) {
+  const existing = Array.isArray(cat.words) ? cat.words : [];
+  const known = new Set(existing.map((w) => w.toLowerCase()));
+  const base = cat.lexicon && LEX[cat.lexicon];
+  if (base) base.words.forEach((w) => known.add(w.toLowerCase()));
+  const additions = salientWords(text)
+    .filter((w) => !known.has(w))
+    .sort((a, b) => b.length - a.length)
+    .slice(0, LEARN_PER_REFILE);
+  if (!additions.length) return cat;
+  return { ...cat, words: [...existing, ...additions] };
 }
