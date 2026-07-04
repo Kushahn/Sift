@@ -29,13 +29,30 @@ const ITEM_DEFAULTS = {
 
 const CAT_DEFAULTS = { collapsed: false };
 
+const HEX_RX = /^#[0-9a-f]{3,8}$/i; // colors land in inline styles — hex only
+
 export function normalize(data) {
   if (!data) throw new Error("bad shape");
   const src = data.workspaces ? data.workspaces.personal : data;
-  if (!src || !Array.isArray(src.categories) || !Array.isArray(src.items)) throw new Error("bad shape");
+  if (!src || !Array.isArray(src.categories) || !Array.isArray(src.items) || !src.categories.length)
+    throw new Error("bad shape");
+  const categories = src.categories.map((c, i) => ({
+    ...CAT_DEFAULTS,
+    ...c,
+    name: typeof c.name === "string" && c.name.trim() ? c.name : "Tray",
+    color: HEX_RX.test(c.color) ? c.color : TRAY_COLORS[i % TRAY_COLORS.length],
+  }));
+  const ids = new Set(categories.map((c) => c.id));
   return {
-    categories: src.categories.map((c) => ({ ...CAT_DEFAULTS, ...c })),
-    items: src.items.map((it) => ({ ...ITEM_DEFAULTS, ...it })),
+    categories,
+    items: src.items
+      .filter((it) => it && typeof it.text === "string")
+      .map((it, i) => ({
+        ...ITEM_DEFAULTS,
+        ...it,
+        id: String(it.id ?? "imp" + i),
+        catId: ids.has(it.catId) ? it.catId : categories[0].id, // orphaned import -> first tray
+      })),
     theme: data.theme === "light" || data.theme === "dark" ? data.theme : "auto",
   };
 }

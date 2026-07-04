@@ -6,10 +6,12 @@ import {
 import Tray from "./Tray.jsx";
 import ItemCard from "./ItemCard.jsx";
 
+// done items always sink to the bottom; sort() is stable, so capture order
+// (newest-first) survives within each group
 function sortItems(list, sort) {
-  if (sort !== "due") return list; // capture order is already newest-first
+  if (sort !== "due") return [...list].sort((a, b) => !!a.done - !!b.done);
   return [...list].sort((a, b) => {
-    const rank = (it) => (it.due != null ? 0 : it.vague ? 1 : 2);
+    const rank = (it) => (it.done ? 3 : it.due != null ? 0 : it.vague ? 1 : 2);
     if (rank(a) !== rank(b)) return rank(a) - rank(b);
     if (rank(a) === 0) return a.due - b.due;
     return (b.created || 0) - (a.created || 0);

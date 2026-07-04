@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "android": "npm run build && cap sync android && cap open android",
+    "ext": "npm run build && node scripts/build-ext.mjs",
     "test": "vitest run"
   },
   "dependencies": {

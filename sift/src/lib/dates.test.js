@@ -40,6 +40,16 @@ describe("parseDue", () => {
     expect(parseDue("standup 15:30", NOW).due).toBe(at(2026, 5, 11, 15, 30));
     expect(parseDue("call at 3", NOW).due).toBe(at(2026, 5, 11, 15, 0)); // bare hour -> afternoon
   });
+  it("ignores bare 'sat'/'sun' as ordinary words but accepts them after a scheduling word", () => {
+    expect(parseDue("we sat in the garden", NOW)).toBeNull();
+    expect(parseDue("the sun is out", NOW)).toBeNull();
+    expect(parseDue("gym on sat", NOW).due).toBe(at(2026, 5, 13, 23, 59));
+    expect(parseDue("brunch next sun", NOW).due).toBe(at(2026, 5, 14, 23, 59));
+  });
+  it("rejects impossible clock values", () => {
+    expect(parseDue("meet at 47", NOW)).toBeNull();
+    expect(parseDue("weird 99:99 stamp", NOW)).toBeNull();
+  });
   it("vague future phrases produce SOMEDAY with no timestamp", () => {
     for (const t of ["learn piano in the future", "someday visit japan", "eventually fix this", "do it later"]) {
       const r = parseDue(t, NOW);

@@ -40,6 +40,17 @@ export async function ensurePermission() {
   }
 }
 
+// Web: fire a notification right now. Android Chrome forbids `new Notification()`
+// from a page (it throws — notifications must go through the service worker),
+// so prefer the SW path and fall back to the constructor.
+export async function showNotification(title, opts) {
+  try {
+    const reg = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistration() : null;
+    if (reg) return await reg.showNotification(title, opts);
+  } catch { /* fall through to the constructor */ }
+  try { new Notification(title, opts); } catch { /* nothing else to try */ }
+}
+
 // Native only: cancel everything pending and reschedule all future reminders.
 // Called whenever items change — idempotent by construction.
 export async function syncReminders(items) {

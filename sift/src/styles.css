@@ -219,6 +219,42 @@ body::before {
 
 .newtray .btn { padding: 6px 12px; }
 
+/* ---- data menu (native <details>) ---- */
+
+.menu { position: relative; }
+
+.menu summary {
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  border: 1.5px solid var(--line);
+  color: var(--muted);
+  padding: 7px 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.menu summary::-webkit-details-marker { display: none; }
+.menu summary::after { content: " \25BE"; }
+.menu[open] summary,
+.menu summary:hover { border-color: var(--ink); color: var(--ink); }
+
+.menu-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--card);
+  border: 1.5px solid var(--ink);
+  padding: 8px;
+  min-width: 130px;
+}
+
+.menu-pop .ghost { text-align: left; }
+
 /* ---- board & trays ---- */
 
 .board {

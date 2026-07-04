@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { classify, suggestName, learn, POLICY } from "./lib/classifier.js";
 import { parseDue, nextOccurrence, dueLabel } from "./lib/dates.js";
-import { ensurePermission, syncReminders, reminderTime, isNative } from "./lib/notify.js";
+import { ensurePermission, syncReminders, reminderTime, isNative, showNotification } from "./lib/notify.js";
 import { load, save, freshSeeds, normalize, TRAY_COLORS } from "./lib/store.js";
 import Capture from "./components/Capture.jsx";
 import Trace from "./components/Trace.jsx";
@@ -68,7 +68,7 @@ export default function App() {
         return t != null && t <= now && !it.notifiedAt;
       });
       if (!fire.length) return;
-      fire.forEach((it) => new Notification("Sift", { body: it.text, tag: it.id }));
+      fire.forEach((it) => showNotification("Sift", { body: it.text, tag: it.id }));
       setData((d) => ({
         ...d,
         items: d.items.map((it) => (fire.some((f) => f.id === it.id) ? { ...it, notifiedAt: now } : it)),
@@ -97,6 +97,19 @@ export default function App() {
     setData((d) => ({ ...d, theme: d.theme === "auto" ? "light" : d.theme === "light" ? "dark" : "auto" }));
 
   useEffect(() => () => clearTimeout(toastTimer.current), []);
+
+  // "/" focuses capture from anywhere (desktop nicety)
+  useEffect(() => {
+    const fn = (e) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, []);
 
   const visibleItems = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -225,6 +238,13 @@ export default function App() {
 
   const removeItem = (id) => setData((d) => ({ ...d, items: d.items.filter((it) => it.id !== id) }));
 
+  const doneCount = data.items.filter((it) => it.done).length;
+
+  function clearDone() {
+    if (!doneCount || !window.confirm(`Remove ${doneCount} done item(s)?`)) return;
+    setData((d) => ({ ...d, items: d.items.filter((it) => !it.done) }));
+  }
+
   function saveEdit(id, patch) {
     patchItem(id, (it) => ({ ...it, ...patch }));
     if (patch.remind && patch.due != null) ensurePermission();
@@ -299,7 +319,7 @@ export default function App() {
       <Toolbar
         query={query} setQuery={setQuery}
         onAddTray={addTray} onExport={exportJSON} onImport={importJSON} onReset={resetAll}
-        sort={sort} setSort={setSort}
+        sort={sort} setSort={setSort} doneCount={doneCount} onClearDone={clearDone}
       />
 
       <Board

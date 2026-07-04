@@ -5,7 +5,10 @@ const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "
 const WD_ABBR = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 const VAGUE_RX = /\b(in the future|someday|eventually|later)\b/i;
-const WD_RX = /\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday|sun|mon|tue|wed|thu|fri|sat)\b/i;
+// full names plus abbreviations that aren't everyday English words; bare
+// "sat"/"sun" ("we sat down", "the sun is out") need a scheduling word first
+const WD_RX = /\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday|mon|tue|tues|wed|thu|thur|thurs|fri)\b/i;
+const WD_CTX_RX = /\b(?:on|next|this|by|until|till)\s+(sat|sun)\b/i;
 const MD_RX = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})\b/i;
 const DM_RX = /\b(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b/i;
 const TIME_RX = /\b(\d{1,2}):(\d{2})\s*(am|pm)?\b|\b(\d{1,2})\s*(am|pm)\b|\bat\s+(\d{1,2})\b/i;
@@ -22,17 +25,18 @@ function to24h(hours, ampm) {
 function parseTime(text) {
   const m = text.match(TIME_RX);
   if (!m) return null;
-  if (m[1] !== undefined) return { h: to24h(+m[1], m[3]), min: +m[2] };
-  if (m[4] !== undefined) return { h: to24h(+m[4], m[5]), min: 0 };
-  const h = +m[6];
-  return { h: h < 8 ? h + 12 : h, min: 0 }; // bare "at 3" -> assume afternoon
+  let t;
+  if (m[1] !== undefined) t = { h: to24h(+m[1], m[3]), min: +m[2] };
+  else if (m[4] !== undefined) t = { h: to24h(+m[4], m[5]), min: 0 };
+  else { const h = +m[6]; t = { h: h < 8 ? h + 12 : h, min: 0 }; } // bare "at 3" -> assume afternoon
+  return t.h > 23 || t.min > 59 ? null : t; // "at 47" / "99:99" are not times
 }
 
 function parseDay(text, now) {
   if (/\btomorrow\b/i.test(text)) return { day: startOfDay(new Date(now.getTime() + DAY)) };
   if (/\btonight\b/i.test(text)) return { day: startOfDay(now), eveningDefault: true };
   if (/\btoday\b/i.test(text)) return { day: startOfDay(now) };
-  const wd = text.match(WD_RX);
+  const wd = text.match(WD_RX) || text.match(WD_CTX_RX);
   if (wd) {
     const target = WD_ABBR.indexOf(wd[1].slice(0, 3).toUpperCase());
     let delta = (target - now.getDay() + 7) % 7;

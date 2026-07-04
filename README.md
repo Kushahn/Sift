@@ -14,6 +14,14 @@ npm run dev        # http://localhost:5173
 ```
 Production: `npm run build && npm run preview`. In Chrome/Edge, the install icon in the address bar installs it as a desktop app (PWA — works on localhost and any https deployment).
 
+**Firefox (extension):**
+```bash
+npm run ext        # builds dist/ and packages extension/
+```
+Then Firefox → `about:debugging` → *This Firefox* → *Load Temporary Add-on* → `extension/manifest.json`. The toolbar button opens Sift in a tab; it also lives in the sidebar (View → Sidebar → Sift). For a permanent install, zip the `extension/` folder contents and install via `about:addons` in Firefox Developer/ESR with `xpinstall.signatures.required=false`.
+
+Fonts are self-hosted (`public/fonts/`) — the app runs with zero network everywhere (web, APK, extension).
+
 ## Run on Android
 **Path A — PWA (fastest).** Deploy `dist/` anywhere with https (e.g. `vercel deploy dist`), open the URL in Chrome on the phone → menu → *Add to Home screen*. Full-screen, offline-capable, has an icon.
 
@@ -42,5 +50,6 @@ src/App.jsx            UI: capture, trace receipt, trays, undo, import/export
 src/lib/classifier.js  routing engine + thresholds (the AI swap point)
 src/lib/store.js       persistence, riso palette, seeds
 src/styles.css         the print-shop design system
-public/                PWA manifest, service worker, icons
+public/                PWA manifest, service worker, icons, self-hosted fonts
+scripts/build-ext.mjs  packages dist/ as the Firefox extension
 ```

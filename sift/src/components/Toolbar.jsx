@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
 
-export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport, onReset, sort, setSort }) {
+export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport, onReset, sort, setSort, doneCount, onClearDone }) {
   const [newTray, setNewTray] = useState(null);
   const fileRef = useRef(null);
+  const menuRef = useRef(null);
 
   function commit() {
     const name = (newTray || "").trim();
@@ -27,6 +28,9 @@ export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport
       >
         sort: {sort === "new" ? "newest" : "due"}
       </button>
+      {doneCount > 0 && (
+        <button className="ghost" onClick={onClearDone}>clear done ({doneCount})</button>
+      )}
       {newTray === null ? (
         <button className="ghost" onClick={() => setNewTray("")}>+ tray</button>
       ) : (
@@ -45,8 +49,14 @@ export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport
           <button className="btn" onClick={commit}>add</button>
         </span>
       )}
-      <button className="ghost" onClick={onExport}>export</button>
-      <button className="ghost" onClick={() => fileRef.current?.click()}>import</button>
+      <details className="menu" ref={menuRef}>
+        <summary>data</summary>
+        <div className="menu-pop" onClick={() => menuRef.current?.removeAttribute("open")}>
+          <button className="ghost" onClick={onExport}>export</button>
+          <button className="ghost" onClick={() => fileRef.current?.click()}>import</button>
+          <button className="ghost danger" onClick={onReset}>reset</button>
+        </div>
+      </details>
       <input
         ref={fileRef}
         type="file"
@@ -54,7 +64,6 @@ export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport
         onChange={(e) => { const f = e.target.files?.[0]; if (f) onImport(f); e.target.value = ""; }}
         hidden
       />
-      <button className="ghost danger" onClick={onReset}>reset</button>
     </div>
   );
 }

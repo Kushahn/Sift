@@ -54,6 +54,22 @@ describe("normalize", () => {
     const src = { ...freshSeeds(), categories: freshSeeds().categories.map((c) => ({ ...c, collapsed: true })) };
     expect(normalize(src).categories.every((c) => c.collapsed === true)).toBe(true);
   });
+  it("reassigns items whose tray no longer exists to the first tray", () => {
+    const s = normalize({ categories: [{ id: "a", name: "A", color: "#123456" }], items: [{ id: "x", catId: "ghost", text: "hi" }] });
+    expect(s.items[0].catId).toBe("a");
+  });
+  it("rejects imports with no trays", () => {
+    expect(() => normalize({ categories: [], items: [] })).toThrow();
+  });
+  it("replaces junk category colors and names with safe defaults", () => {
+    const s = normalize({ categories: [{ id: "a", name: "", color: "url(evil)" }], items: [] });
+    expect(s.categories[0].color).toMatch(/^#[0-9a-f]{3,8}$/i);
+    expect(s.categories[0].name).toBe("Tray");
+  });
+  it("drops items without text", () => {
+    const s = normalize({ categories: [{ id: "a", name: "A", color: "#123456" }], items: [{ id: "x", catId: "a" }, null] });
+    expect(s.items).toHaveLength(0);
+  });
 });
 
 describe("load", () => {

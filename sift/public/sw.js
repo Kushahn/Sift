@@ -1,4 +1,4 @@
-const CACHE = "sift-v1";
+const CACHE = "sift-v2"; // v2: fonts self-hosted, no cross-origin caching
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -10,33 +10,24 @@ self.addEventListener("activate", (e) => {
   );
 });
 
+// network-first with cache fallback; offline navigations fall back to the app shell
 self.addEventListener("fetch", (e) => {
   const { request } = e;
-  if (request.method !== "GET") return;
-  const url = new URL(request.url);
-
-  if (url.hostname.includes("fonts.googleapis.com") || url.hostname.includes("fonts.gstatic.com")) {
-    e.respondWith(
-      caches.open(CACHE).then(async (c) => {
-        const hit = await c.match(request);
-        if (hit) return hit;
-        const res = await fetch(request);
-        c.put(request, res.clone());
-        return res;
-      })
-    );
-    return;
-  }
-
-  if (url.origin === location.origin) {
-    e.respondWith(
-      fetch(request)
-        .then((res) => {
+  if (request.method !== "GET" || new URL(request.url).origin !== location.origin) return;
+  e.respondWith(
+    fetch(request)
+      .then((res) => {
+        if (res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(request, copy));
-          return res;
-        })
-        .catch(() => caches.match(request).then((m) => m || caches.match("/index.html")))
-    );
-  }
+        }
+        return res;
+      })
+      .catch(async () =>
+        (await caches.match(request)) ||
+        (request.mode === "navigate" && (await caches.match("./"))) ||
+        (request.mode === "navigate" && (await caches.match("./index.html"))) ||
+        Response.error()
+      )
+  );
 });
