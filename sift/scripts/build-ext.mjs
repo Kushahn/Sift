@@ -27,7 +27,15 @@ writeFileSync(
       background: { scripts: ["background.js"] },
       browser_action: { default_icon: "icons/icon-192.png", default_title: "Open Sift" },
       sidebar_action: { default_panel: "index.html", default_title: "Sift", default_icon: "icons/icon-192.png" },
-      browser_specific_settings: { gecko: { id: "sift@krist.local", strict_min_version: "115.0" } },
+      browser_specific_settings: {
+        gecko: {
+          id: "sift@krist.local",
+          strict_min_version: "140.0",
+          // AMO requires every new extension to declare data collection; Sift
+          // is local-only and collects nothing
+          data_collection_permissions: { required: ["none"] },
+        },
+      },
     },
     null,
     2
