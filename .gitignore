@@ -3,5 +3,6 @@ dist/
 extension/
 .superpowers/
 *.zip
+*.xpi
 .remember/
 .playwright-mcp/
