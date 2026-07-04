@@ -1,0 +1,12 @@
+{
+  "name": "sift-root",
+  "private": true,
+  "description": "Proxy scripts — the app lives in ./sift; these let npm run work from the repo root too.",
+  "scripts": {
+    "dev": "npm --prefix sift run dev",
+    "build": "npm --prefix sift run build",
+    "test": "npm --prefix sift test",
+    "ext": "npm --prefix sift run ext",
+    "android": "npm --prefix sift run android"
+  }
+}
