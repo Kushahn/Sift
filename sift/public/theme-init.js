@@ -5,4 +5,6 @@ try {
   var t = (JSON.parse(localStorage.getItem("sift.v1") || "{}").theme) || "auto";
   if (t === "auto") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   document.documentElement.dataset.theme = t;
+  // extension popup gets a fixed compact width (see styles.css :root.popup)
+  if (location.search.indexOf("popup") !== -1) document.documentElement.classList.add("popup");
 } catch (e) { /* defaults apply */ }

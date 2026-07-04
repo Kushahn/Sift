@@ -24,7 +24,7 @@ export const inkFor = (hex, theme) => (theme === "dark" ? NIGHT_INK[hex] || hex 
 
 const ITEM_DEFAULTS = {
   conf: null, done: false, due: null, hasTime: false, vague: false,
-  repeat: null, remind: false, created: null, doneAt: null, notifiedAt: null,
+  repeat: null, remind: false, remindOffset: 0, created: null, doneAt: null, notifiedAt: null,
 };
 
 const CAT_DEFAULTS = { collapsed: false };
@@ -34,8 +34,7 @@ const HEX_RX = /^#[0-9a-f]{3,8}$/i; // colors land in inline styles — hex only
 export function normalize(data) {
   if (!data) throw new Error("bad shape");
   const src = data.workspaces ? data.workspaces.personal : data;
-  if (!src || !Array.isArray(src.categories) || !Array.isArray(src.items) || !src.categories.length)
-    throw new Error("bad shape");
+  if (!src || !Array.isArray(src.categories) || !Array.isArray(src.items)) throw new Error("bad shape");
   const categories = src.categories.map((c, i) => ({
     ...CAT_DEFAULTS,
     ...c,
@@ -51,8 +50,9 @@ export function normalize(data) {
         ...ITEM_DEFAULTS,
         ...it,
         id: String(it.id ?? "imp" + i),
-        catId: ids.has(it.catId) ? it.catId : categories[0].id, // orphaned import -> first tray
-      })),
+        catId: ids.has(it.catId) ? it.catId : categories[0]?.id, // orphaned import -> first tray
+      }))
+      .filter((it) => it.catId != null), // zero trays -> zero items
     theme: data.theme === "light" || data.theme === "dark" ? data.theme : "auto",
   };
 }

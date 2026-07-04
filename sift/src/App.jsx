@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { classify, suggestName, learn, POLICY } from "./lib/classifier.js";
 import { parseDue, nextOccurrence, dueLabel } from "./lib/dates.js";
 import { ensurePermission, syncReminders, reminderTime, isNative, showNotification } from "./lib/notify.js";
+import { isExt } from "./lib/ext.js";
 import { load, save, freshSeeds, normalize, TRAY_COLORS } from "./lib/store.js";
 import Capture from "./components/Capture.jsx";
 import Trace from "./components/Trace.jsx";
@@ -10,6 +11,7 @@ import Toolbar from "./components/Toolbar.jsx";
 import Board from "./components/Board.jsx";
 import Toast from "./components/Toast.jsx";
 import EditSheet from "./components/EditSheet.jsx";
+import Confirm from "./components/Confirm.jsx";
 
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const stamp = () =>
@@ -31,7 +33,7 @@ const newItem = (text, catId, conf) => {
     vague: parsed?.vague ?? false,
     repeat: null,
     remind: !!(parsed && parsed.due != null), // concrete date -> reminder armed by default
-    doneAt: null, notifiedAt: null,
+    remindOffset: 0, doneAt: null, notifiedAt: null,
   };
 };
 
@@ -46,6 +48,7 @@ export default function App() {
   const [pending, setPending] = useState(null); // { text, name }
   const [toast, setToast] = useState(null);     // { text, undoId? }
   const [editing, setEditing] = useState(null); // item id or null
+  const [confirm, setConfirm] = useState(null); // { text, onYes }
   const [sysDark, setSysDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
   const inputRef = useRef(null);
   const toastTimer = useRef(null);
@@ -59,7 +62,8 @@ export default function App() {
   const itemsRef = useRef(data.items);
   useEffect(() => { itemsRef.current = data.items; }, [data.items]);
   useEffect(() => {
-    if (isNative || !("Notification" in window)) return;
+    // in the extension, the background script owns reminders (fires with no tab open)
+    if (isNative || isExt || !("Notification" in window)) return;
     const tick = () => {
       if (Notification.permission !== "granted") return;
       const now = Date.now();
@@ -121,6 +125,8 @@ export default function App() {
     setToast(next);
     toastTimer.current = setTimeout(() => setToast(null), 6000);
   }
+
+  const ask = (text, onYes) => setConfirm({ text, onYes });
 
   // ---- capture & routing -------------------------------------------------
 
@@ -191,18 +197,28 @@ export default function App() {
     setData((d) => ({ ...d, categories: d.categories.map((c) => (c.id === id ? { ...c, collapsed: !c.collapsed } : c)) }));
 
   function deleteTray(id) {
-    if (data.categories.length <= 1) return;
     const target = data.categories.find((c) => c.id === id);
+    if (!target) return;
     const count = data.items.filter((it) => it.catId === id).length;
-    if (count && !window.confirm(`Move ${count} item(s) out of "${target.name}" and remove the tray?`)) return;
-    setData((d) => {
-      const rest = d.categories.filter((c) => c.id !== id);
-      return {
-        ...d,
-        categories: rest,
-        items: d.items.map((it) => (it.catId === id ? { ...it, catId: rest[0].id, refiled: true } : it)),
-      };
-    });
+    const others = data.categories.length > 1;
+    const doIt = () =>
+      setData((d) => {
+        const rest = d.categories.filter((c) => c.id !== id);
+        return {
+          ...d,
+          categories: rest,
+          items: rest.length
+            ? d.items.map((it) => (it.catId === id ? { ...it, catId: rest[0].id, refiled: true } : it))
+            : d.items.filter((it) => it.catId !== id), // last tray takes its items with it
+        };
+      });
+    if (!count) return doIt();
+    ask(
+      others
+        ? `Move ${count} item(s) out of "${target.name}" and remove the tray?`
+        : `Delete "${target.name}" and its ${count} item(s)? This is the last tray.`,
+      doIt
+    );
   }
 
   // ---- items ----------------------------------------------------------------
@@ -241,8 +257,10 @@ export default function App() {
   const doneCount = data.items.filter((it) => it.done).length;
 
   function clearDone() {
-    if (!doneCount || !window.confirm(`Remove ${doneCount} done item(s)?`)) return;
-    setData((d) => ({ ...d, items: d.items.filter((it) => !it.done) }));
+    if (!doneCount) return;
+    ask(`Remove ${doneCount} done item(s)?`, () =>
+      setData((d) => ({ ...d, items: d.items.filter((it) => !it.done) }))
+    );
   }
 
   function saveEdit(id, patch) {
@@ -273,19 +291,19 @@ export default function App() {
       try {
         setData(normalize(JSON.parse(r.result)));
       } catch {
-        window.alert("That file does not look like a Sift export.");
+        pushToast({ text: "that file does not look like a Sift export" });
       }
     };
     r.readAsText(file);
   }
 
   function resetAll() {
-    if (window.confirm("Erase everything on this device and restore demo data?")) {
+    ask("Erase everything on this device and restore demo data?", () => {
       setData(freshSeeds());
       setTrace(null);
       setPending(null);
       setToast(null);
-    }
+    });
   }
 
   // ---- render ----------------------------------------------------------------
@@ -323,13 +341,21 @@ export default function App() {
       />
 
       <Board
-        categories={data.categories} items={visibleItems} canDelete={data.categories.length > 1}
+        categories={data.categories} items={visibleItems}
         onRenameTray={renameTray} onDeleteTray={deleteTray} onToggleCollapse={toggleCollapse}
         onToggleDone={toggleDone} onRefile={refile} onRemove={removeItem}
         sort={sort} onEdit={setEditing} theme={theme}
       />
 
       {toast && <Toast toast={toast} onUndo={undo} />}
+
+      {confirm && (
+        <Confirm
+          text={confirm.text}
+          onYes={() => { confirm.onYes(); setConfirm(null); }}
+          onNo={() => setConfirm(null)}
+        />
+      )}
 
       {editing && data.items.some((it) => it.id === editing) && (
         <EditSheet

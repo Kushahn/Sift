@@ -18,7 +18,7 @@ function sortItems(list, sort) {
   });
 }
 
-export default function Board({ categories, items, sort, canDelete, onRenameTray, onDeleteTray, onToggleCollapse, onToggleDone, onRefile, onRemove, onEdit, theme }) {
+export default function Board({ categories, items, sort, onRenameTray, onDeleteTray, onToggleCollapse, onToggleDone, onRefile, onRemove, onEdit, theme }) {
   const [dragId, setDragId] = useState(null);
 
   const sensors = useSensors(
@@ -46,6 +46,9 @@ export default function Board({ categories, items, sort, canDelete, onRenameTray
       onDragEnd={handleDragEnd}
     >
       <div className="board">
+        {categories.length === 0 && (
+          <div className="empty board-empty">no trays — type above and Sift will suggest one</div>
+        )}
         {categories.map((c) => (
           <Tray
             key={c.id}
@@ -53,7 +56,6 @@ export default function Board({ categories, items, sort, canDelete, onRenameTray
             items={sortItems(items.filter((it) => it.catId === c.id), sort)}
             categories={categories}
             theme={theme}
-            canDelete={canDelete}
             onRename={onRenameTray}
             onDelete={onDeleteTray}
             onToggleCollapse={onToggleCollapse}

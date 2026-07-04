@@ -84,6 +84,10 @@ describe("nextOccurrence", () => {
     expect(nextOccurrence(at(2026, 5, 11, 15, 0), { every: 1, unit: "day" }, now)).toBe(at(2026, 5, 12, 15, 0));
     expect(nextOccurrence(at(2026, 5, 11, 15, 0), { every: 2, unit: "week" }, now)).toBe(at(2026, 5, 25, 15, 0));
   });
+  it("advances hourly repeats", () => {
+    expect(nextOccurrence(at(2026, 5, 11, 11, 0), { every: 2, unit: "hour" }, now)).toBe(at(2026, 5, 11, 13, 0));
+    expect(nextOccurrence(at(2026, 5, 11, 15, 0), { every: 1, unit: "hour" }, now)).toBe(at(2026, 5, 11, 16, 0));
+  });
   it("clamps month-end (Jan 31 + 1 month = Feb 28)", () => {
     expect(nextOccurrence(at(2026, 0, 31, 9, 0), { every: 1, unit: "month" }, at(2026, 0, 31, 10, 0)))
       .toBe(at(2026, 1, 28, 9, 0));
@@ -104,6 +108,7 @@ describe("repeatLabel", () => {
   it("formats cycles compactly", () => {
     expect(repeatLabel({ every: 1, unit: "day" })).toBe("↻1D");
     expect(repeatLabel({ every: 2, unit: "week" })).toBe("↻2W");
+    expect(repeatLabel({ every: 1, unit: "hour" })).toBe("↻1H");
     expect(repeatLabel(null)).toBeNull();
     expect(repeatLabel({ every: 1, unit: "fortnight" })).toBeNull();
   });

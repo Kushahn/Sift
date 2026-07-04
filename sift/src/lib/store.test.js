@@ -58,8 +58,10 @@ describe("normalize", () => {
     const s = normalize({ categories: [{ id: "a", name: "A", color: "#123456" }], items: [{ id: "x", catId: "ghost", text: "hi" }] });
     expect(s.items[0].catId).toBe("a");
   });
-  it("rejects imports with no trays", () => {
-    expect(() => normalize({ categories: [], items: [] })).toThrow();
+  it("accepts zero trays and drops the orphaned items (delete-all-trays is legal)", () => {
+    const s = normalize({ categories: [], items: [{ id: "x", catId: "ghost", text: "hi" }] });
+    expect(s.categories).toHaveLength(0);
+    expect(s.items).toHaveLength(0);
   });
   it("replaces junk category colors and names with safe defaults", () => {
     const s = normalize({ categories: [{ id: "a", name: "", color: "url(evil)" }], items: [] });

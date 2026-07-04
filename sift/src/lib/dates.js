@@ -93,7 +93,8 @@ export function nextOccurrence(due, repeat, now = Date.now()) {
   const d = new Date(due != null ? due : now);
   const advance = () => {
     const n = repeat.every;
-    if (repeat.unit === "day") d.setDate(d.getDate() + n);
+    if (repeat.unit === "hour") d.setHours(d.getHours() + n);
+    else if (repeat.unit === "day") d.setDate(d.getDate() + n);
     else if (repeat.unit === "week") d.setDate(d.getDate() + 7 * n);
     else if (repeat.unit === "month") {
       const dayNum = d.getDate();
@@ -114,7 +115,7 @@ export function nextOccurrence(due, repeat, now = Date.now()) {
 
 export function repeatLabel(repeat) {
   if (!repeat) return null;
-  const u = { day: "D", week: "W", month: "M", year: "Y" }[repeat.unit];
+  const u = { hour: "H", day: "D", week: "W", month: "M", year: "Y" }[repeat.unit];
   if (!u) return null; // unknown unit (e.g. corrupt import) — no glyph
   return `↻${repeat.every}${u}`;
 }

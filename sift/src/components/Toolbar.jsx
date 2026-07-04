@@ -1,4 +1,23 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { isExt, getOpenMode, setOpenMode } from "../lib/ext.js";
+
+// Extension only: how the toolbar icon opens Sift. The background script
+// watches this setting and re-wires the icon accordingly.
+function OpenModeRow() {
+  const [mode, setMode] = useState(null);
+  useEffect(() => { getOpenMode().then(setMode); }, []);
+  if (!isExt || mode == null) return null;
+  return (
+    <label className="openmode">
+      <span>opens in</span>
+      <select value={mode} onChange={(e) => { setMode(e.target.value); setOpenMode(e.target.value); }}>
+        <option value="tab">tab</option>
+        <option value="sidebar">sidebar</option>
+        <option value="popup">popup</option>
+      </select>
+    </label>
+  );
+}
 
 export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport, onReset, sort, setSort, doneCount, onClearDone }) {
   const [newTray, setNewTray] = useState(null);
@@ -52,6 +71,7 @@ export default function Toolbar({ query, setQuery, onAddTray, onExport, onImport
       <details className="menu" ref={menuRef}>
         <summary>data</summary>
         <div className="menu-pop" onClick={() => menuRef.current?.removeAttribute("open")}>
+          <OpenModeRow />
           <button className="ghost" onClick={onExport}>export</button>
           <button className="ghost" onClick={() => fileRef.current?.click()}>import</button>
           <button className="ghost danger" onClick={onReset}>reset</button>

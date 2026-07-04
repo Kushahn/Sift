@@ -3,7 +3,7 @@ import { useDroppable } from "@dnd-kit/core";
 import ItemCard from "./ItemCard.jsx";
 import { inkFor } from "../lib/store.js";
 
-export default function Tray({ cat, items, categories, canDelete, onRename, onDelete, onToggleCollapse, onToggleDone, onRefile, onRemove, onEdit, theme }) {
+export default function Tray({ cat, items, categories, onRename, onDelete, onToggleCollapse, onToggleDone, onRefile, onRemove, onEdit, theme }) {
   const { isOver, setNodeRef } = useDroppable({ id: "tray:" + cat.id });
   const [editName, setEditName] = useState(null);
   const collapsed = !!cat.collapsed;
@@ -49,9 +49,7 @@ export default function Tray({ cat, items, categories, canDelete, onRename, onDe
           </button>
         )}
         <span className="count">{items.length}</span>
-        {canDelete && (
-          <button className="x" onClick={() => onDelete(cat.id)} aria-label={`Delete tray ${cat.name}`}>×</button>
-        )}
+        <button className="x" onClick={() => onDelete(cat.id)} aria-label={`Delete tray ${cat.name}`}>×</button>
       </header>
 
       {!collapsed && items.length === 0 && <div className="empty">empty — type above</div>}

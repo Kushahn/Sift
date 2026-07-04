@@ -10,12 +10,16 @@ export const isNative = Capacitor.isNativePlatform();
 
 // When this item's reminder should fire (epoch ms), or null if no reminder
 // applies. May be in the past — callers decide what past means.
+// Mirrored in scripts/build-ext.mjs (extension background) — keep in sync.
 export function reminderTime(item) {
   if (!item.remind || item.done || item.vague || item.due == null) return null;
-  if (item.hasTime) return item.due;
-  const d = new Date(item.due);
-  d.setHours(9, 0, 0, 0); // date-only items remind at 09:00 that day
-  return d.getTime();
+  let base = item.due;
+  if (!item.hasTime) {
+    const d = new Date(item.due);
+    d.setHours(9, 0, 0, 0); // date-only items remind at 09:00 that day
+    base = d.getTime();
+  }
+  return base - (item.remindOffset || 0) * 60_000; // lead time in minutes
 }
 
 // Stable positive int32 id for Capacitor from the string item id.
