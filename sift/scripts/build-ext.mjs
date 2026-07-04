@@ -30,7 +30,7 @@ writeFileSync(
       browser_specific_settings: {
         gecko: {
           id: "sift@krist.local",
-          strict_min_version: "140.0",
+          strict_min_version: "142.0", // 142 = first release where Android also understands data_collection_permissions
           // AMO requires every new extension to declare data collection; Sift
           // is local-only and collects nothing
           data_collection_permissions: { required: ["none"] },
