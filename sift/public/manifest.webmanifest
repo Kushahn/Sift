@@ -1,7 +1,7 @@
 {
   "name": "Sift — route your thoughts",
   "short_name": "Sift",
-  "description": "Type anything. It finds its place.",
+  "description": "Capture notes, tasks, and reminders — sorted into trays you control.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#EAE8E4",

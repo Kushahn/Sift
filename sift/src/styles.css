@@ -67,8 +67,6 @@ body::before {
 
 .regmark { color: var(--red); align-self: center; }
 
-.tag { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
-
 /* ---- capture ---- */
 
 .capture { display: flex; gap: 10px; }
@@ -121,7 +119,9 @@ body::before {
 
 /* ---- example chips ---- */
 
-.examples { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 18px; }
+.examples { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0 18px; }
+
+.ex-hint { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
 .chip {
   font-family: var(--mono);
@@ -209,7 +209,7 @@ body::before {
 
 /* ---- toolbar ---- */
 
-.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; position: relative; }
 
 .toolbar .filter { width: min(280px, 100%); }
 
@@ -221,7 +221,7 @@ body::before {
 
 /* ---- data menu (native <details>) ---- */
 
-.menu { position: relative; }
+.menu { position: static; }
 
 .menu summary {
   list-style: none;
@@ -239,10 +239,12 @@ body::before {
 .menu[open] summary,
 .menu summary:hover { border-color: var(--ink); color: var(--ink); }
 
+/* anchored to the toolbar's right edge (not the button) so it can never spill
+   off-screen in the narrow sidebar or popup */
 .menu-pop {
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);
+  top: 100%;
   z-index: 15;
   display: flex;
   flex-direction: column;
@@ -251,6 +253,7 @@ body::before {
   border: 1.5px solid var(--ink);
   padding: 8px;
   min-width: 130px;
+  max-width: calc(100vw - 24px);
 }
 
 .menu-pop .ghost { text-align: left; }
@@ -465,7 +468,6 @@ body::before {
   .capture input { font-size: 16px; box-shadow: none; }
   .btn.go { padding: 0 14px; }
   .toast { bottom: calc(86px + env(safe-area-inset-bottom)); left: 18px; }
-  .tag { display: none; }
 }
 
 /* ---- due-date chips ---- */
@@ -617,6 +619,21 @@ body::before {
 .themebtn { white-space: nowrap; }
 
 /* ---- extension popup: compact window under the toolbar icon ---- */
+/* Firefox sizes the popup to content (up to 800x600). The <=640px mobile rules
+   would otherwise pin the capture bar to the window bottom, which reads as
+   "pressed in"; here we undo that and keep an inline, top-to-bottom layout. */
 
-:root.popup body { width: 420px; }
-:root.popup .sift { padding: 16px 16px 96px; }
+:root.popup body { width: 400px; }
+:root.popup .sift { max-width: none; padding: 14px 14px 18px; }
+
+:root.popup .capture {
+  position: static;
+  padding: 0;
+  background: none;
+  border-top: 0;
+}
+:root.popup .toast {
+  position: static;
+  left: auto; right: auto; bottom: auto;
+  margin-top: 10px;
+}

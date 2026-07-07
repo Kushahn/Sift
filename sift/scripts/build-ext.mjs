@@ -50,12 +50,20 @@ function reminderTime(it) {
 
 const HOUR = 3600000;
 
+// storage.local is the durable copy the app mirrors on every save; fall back to
+// this page's localStorage if it isn't there yet.
+async function loadData() {
+  try {
+    const remote = (await browser.storage.local.get("sift.v1"))["sift.v1"];
+    if (remote) return JSON.parse(remote);
+  } catch { /* fall through */ }
+  try { return JSON.parse(localStorage.getItem("sift.v1")); } catch { return null; }
+}
+
 browser.alarms.create("sift-reminders", { periodInMinutes: 1 });
 browser.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name !== "sift-reminders") return;
-  let data;
-  // the MV2 background page shares the extension origin's localStorage with the app
-  try { data = JSON.parse(localStorage.getItem("sift.v1")); } catch { return; }
+  const data = await loadData();
   if (!data || !Array.isArray(data.items)) return;
   const now = Date.now();
   const notified = (await browser.storage.local.get("notified")).notified || {};
@@ -91,7 +99,7 @@ writeFileSync(
       manifest_version: 2,
       name: "Sift",
       version,
-      description: "Type anything — it finds its place.",
+      description: "Capture notes, tasks, and reminders — sorted into trays you control.",
       icons: { 192: "icons/icon-192.png", 512: "icons/icon-512.png" },
       permissions: ["storage", "alarms", "notifications"],
       background: { scripts: ["background.js"] },

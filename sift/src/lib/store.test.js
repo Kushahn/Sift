@@ -39,7 +39,16 @@ describe("normalize", () => {
     });
   });
   it("accepts the new flat shape unchanged", () => {
-    expect(normalize(freshSeeds()).categories).toHaveLength(4);
+    expect(normalize(freshSeeds()).categories).toHaveLength(3);
+  });
+  it("seeds a clean slate: typical trays, no sample items, examples armed", () => {
+    const s = normalize(freshSeeds());
+    expect(s.items).toHaveLength(0);
+    expect(s.categories.map((c) => c.name)).toEqual(["To-do List", "Plans", "Job"]);
+    expect(s.showExamples).toBe(true);
+  });
+  it("only arms examples for a genuine fresh install, not arbitrary imports", () => {
+    expect(normalize({ categories: [{ id: "a", name: "A", color: "#123456" }], items: [] }).showExamples).toBe(false);
   });
   it("keeps an explicit theme", () => {
     expect(normalize({ ...freshSeeds(), theme: "dark" }).theme).toBe("dark");
@@ -84,7 +93,7 @@ describe("load", () => {
   });
   it("falls back to seeds on corrupted storage", () => {
     localStorage.setItem("sift.v1", "{not json");
-    expect(load().categories).toHaveLength(4);
+    expect(load().categories).toHaveLength(3);
   });
 });
 

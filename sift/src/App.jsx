@@ -146,6 +146,7 @@ export default function App() {
       setPending({ text, name: suggestName(text) });
     }
     if (parseDueArmed(text)) ensurePermission();
+    setData((d) => (d.showExamples ? { ...d, showExamples: false } : d)); // dismiss the try-it chips after first capture
     setInput("");
     inputRef.current?.focus();
   }
@@ -316,14 +317,13 @@ export default function App() {
         <div className="brand">
           <span className="wordmark">SIFT</span>
           <RegMark />
-          <span className="tag">type anything — it finds its place</span>
         </div>
         <button className="ghost themebtn" onClick={cycleTheme} aria-label="Cycle theme">
           {data.theme === "auto" ? "◐ auto" : data.theme === "light" ? "○ light" : "● dark"}
         </button>
       </header>
 
-      <Capture input={input} setInput={setInput} onRoute={route} inputRef={inputRef} />
+      <Capture input={input} setInput={setInput} onRoute={route} inputRef={inputRef} showExamples={data.showExamples} />
 
       {trace && <Trace trace={trace} asking={asking} onDismiss={() => setTrace(null)} theme={theme} />}
 

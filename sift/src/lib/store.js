@@ -3,6 +3,8 @@
 // backed up to sift.v1.backup first so corporate data survives for the
 // future corporate app.
 
+import { mirrorToExt } from "./ext.js";
+
 const KEY = "sift.v1";
 const BACKUP_KEY = "sift.v1.backup";
 
@@ -54,24 +56,23 @@ export function normalize(data) {
       }))
       .filter((it) => it.catId != null), // zero trays -> zero items
     theme: data.theme === "light" || data.theme === "dark" ? data.theme : "auto",
+    showExamples: data.showExamples === true, // only a genuine fresh install (freshSeeds) sets this
   };
 }
 
+// A clean slate: a few typical empty trays, no sample items. The example chips
+// under the capture bar (Capture.jsx, gated on showExamples) are the try-it-out
+// affordance instead, and they disappear after the first capture.
 export function freshSeeds() {
-  const now = Date.now();
   return {
     theme: "auto",
+    showExamples: true,
     categories: [
-      { id: "tasks", name: "Tasks", lexicon: "tasks", color: RISO.green },
-      { id: "ideas", name: "Ideas", lexicon: "ideas", color: RISO.violet },
+      { id: "todo", name: "To-do List", lexicon: "tasks", color: RISO.green },
       { id: "plans", name: "Plans", lexicon: "plans", color: RISO.blue },
-      { id: "events", name: "Schedule", lexicon: "events", color: RISO.sunflower },
+      { id: "job", name: "Job", lexicon: "events", color: RISO.sunflower },
     ],
-    items: [
-      { ...ITEM_DEFAULTS, id: "s1", catId: "tasks", text: "Submit the lab report before Friday", conf: 64, ts: "earlier", created: now },
-      { ...ITEM_DEFAULTS, id: "s2", catId: "ideas", text: "What if flashcards generated themselves from lecture notes", conf: 71, ts: "earlier", created: now },
-      { ...ITEM_DEFAULTS, id: "s3", catId: "events", text: "Dentist appointment Tuesday at 4pm", conf: 88, ts: "earlier", created: now },
-    ],
+    items: [],
   };
 }
 
@@ -90,6 +91,8 @@ export function load() {
 }
 
 export function save(state) {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  const json = JSON.stringify(state);
+  try { localStorage.setItem(KEY, json); }
   catch { /* storage full or unavailable — app keeps working in memory */ }
+  mirrorToExt(json); // durable copy for the extension (survives updates)
 }

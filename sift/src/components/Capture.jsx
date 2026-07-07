@@ -1,6 +1,6 @@
 const EXAMPLES = ["dentist friday at 3pm", "what if alarms snoozed themselves", "fix the squeaky door", "quantum sandwich logistics"];
 
-export default function Capture({ input, setInput, onRoute, inputRef }) {
+export default function Capture({ input, setInput, onRoute, inputRef, showExamples }) {
   return (
     <>
       <div className="capture">
@@ -15,13 +15,16 @@ export default function Capture({ input, setInput, onRoute, inputRef }) {
         />
         <button className="btn go" onClick={onRoute}>route it</button>
       </div>
-      <div className="examples">
-        {EXAMPLES.map((ex) => (
-          <button key={ex} className="chip" onClick={() => { setInput(ex); inputRef.current?.focus(); }}>
-            {ex}
-          </button>
-        ))}
-      </div>
+      {showExamples && (
+        <div className="examples">
+          <span className="ex-hint">try one:</span>
+          {EXAMPLES.map((ex) => (
+            <button key={ex} className="chip" onClick={() => { setInput(ex); inputRef.current?.focus(); }}>
+              {ex}
+            </button>
+          ))}
+        </div>
+      )}
     </>
   );
 }
